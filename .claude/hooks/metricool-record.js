@@ -1,0 +1,68 @@
+#!/usr/bin/env node
+// PostToolUse-hook voor Metricool (MetaDesigns Marketing Agent).
+//  - getBrandSettings: schrijft .claude/state/brand-check.json op basis van het ECHTE antwoord van Metricool
+//    (ok alleen als merk 8006283 "MetaDesigns" gekoppeld is aan Instagram "metadesigns.1").
+//  - createScheduledPost met autoPublish=true en een geslaagd antwoord: voegt de post toe aan
+//    .claude/state/autopublish-ledger.json (maandteller voor de limiet van 20).
+//  - updateScheduledPost (terug naar concept): markeert de ledger-regel als geannuleerd.
+// Deze hook blokkeert nooit; hij legt alleen vast.
+const fs = require('fs');
+const path = require('path');
+const DIR = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, '..', '..');
+const STATE = path.join(DIR, '.claude', 'state');
+const LEDGER = path.join(STATE, 'autopublish-ledger.json');
+const BRANDCHECK = path.join(STATE, 'brand-check.json');
+
+let raw = '';
+process.stdin.on('data', (c) => (raw += c));
+process.stdin.on('end', () => {
+  let ev; try { ev = JSON.parse(raw); } catch { process.exit(0); }
+  const tool = String(ev.tool_name || '').replace(/^mcp__Metricool_Social_Media_Management__/, '');
+  const resp = toObject(ev.tool_response);
+  fs.mkdirSync(STATE, { recursive: true });
+
+  if (tool === 'getBrandSettings') {
+    const brands = (resp && Array.isArray(resp.data)) ? resp.data : [];
+    const b = brands.find((x) => String(x.id) === '8006283');
+    const instagram = b && b.networksData ? b.networksData.instagramData : null;
+    const ok = !!b && b.label === 'MetaDesigns' && instagram === 'metadesigns.1';
+    write(BRANDCHECK, { at: new Date().toISOString(), ok, brandId: b ? String(b.id) : null, label: b ? b.label : null, instagram, brands: brands.length });
+    process.exit(0);
+  }
+
+  const input = ev.tool_input || {};
+  let info = {}; try { info = typeof input.info === 'string' ? JSON.parse(input.info) : (input.info || {}); } catch {}
+  const data = resp && resp.data;
+
+  if (tool === 'createScheduledPost' && info.autoPublish === true && info.draft === false && data && data.uuid) {
+    const dt = String((data.publicationDate && data.publicationDate.dateTime) || (info.publicationDate && info.publicationDate.dateTime) || '');
+    const ledger = read(LEDGER, { months: {} });
+    const month = dt.slice(0, 7);
+    ledger.months[month] = ledger.months[month] || [];
+    if (!ledger.months[month].some((e) => String(e.uuid) === String(data.uuid))) {
+      ledger.months[month].push({ date: dt.slice(0, 10), time: dt.slice(11, 16), type: (info.instagramData && info.instagramData.type) || 'POST', id: data.id, uuid: String(data.uuid), created: new Date().toISOString(), hook: String(info.text || '').split('\n')[0].slice(0, 80) });
+    }
+    write(LEDGER, ledger);
+  }
+
+  if (tool === 'updateScheduledPost' && info.draft === true && info.autoPublish === false && data) {
+    const ledger = read(LEDGER, { months: {} });
+    Object.values(ledger.months).flat().forEach((e) => { if (String(e.uuid) === String(input.uuid)) { e.cancelled = new Date().toISOString(); } });
+    write(LEDGER, ledger);
+  }
+  process.exit(0);
+});
+
+function toObject(r) {
+  if (r == null) return null;
+  if (typeof r === 'object' && !Array.isArray(r) && (r.data || r.rows)) return r;
+  let text = '';
+  if (typeof r === 'string') text = r;
+  else if (Array.isArray(r)) text = r.map((x) => (x && typeof x.text === 'string' ? x.text : '')).join('');
+  else if (Array.isArray(r.content)) text = r.content.map((x) => (x && typeof x.text === 'string' ? x.text : '')).join('');
+  else if (typeof r.result === 'string') text = r.result;
+  else text = JSON.stringify(r);
+  try { return JSON.parse(text); } catch { return null; }
+}
+function read(f, d) { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } }
+function write(f, v) { fs.writeFileSync(f, JSON.stringify(v, null, 2) + '\n'); }
