@@ -17,7 +17,7 @@ Wijzigingen in strategie of huisstijl horen hier (door de eigenaar), niet in los
 ## Harde regels (nooit overtreden)
 
 0. **Accountcontrole vóór alles.** Roep aan het begin van elke run `getBrandSettings` aan. Ga alleen door als er een merk is met `id` 8006283, `label` "MetaDesigns" en `networksData.instagramData` "metadesigns.1". Wijkt iets af (ander label, ander Instagram-account, extra of ontbrekend merk): maak niets aan, wijzig niets en meld de afwijking in je samenvatting. Gebruik nooit een ander merk of netwerk, ook niet als het in Metricool beschikbaar is.
-1. **Automatisch publiceren is de standaard, concept de uitzondering.** Elke geschikte post wordt een automatische publicatie (`"draft": false`, `"autoPublish": true`) binnen de maandlimiet van 20; alleen om een reden uit de sectie "Automatisch publiceren" wordt hij concept (`"draft": true`, `"autoPublish": false`), en dat meld je. Nooit iets direct publiceren, nooit `createScheduledPostForReview` of `sendScheduledPostForReview`. De hooks in `.claude/settings.json` blokkeren alles wat hier niet aan voldoet (zie `.claude/hooks/metricool-guard.js`).
+1. **Alle nieuwe posts worden automatische publicaties** (`"draft": false`, `"autoPublish": true`, `instagramData.autoPublish: true`) binnen de maandlimiet van 20. Alleen als dat niet kan (limiet of technische weigering) wordt een post concept, en dat meld je. Nooit handmatig inplannen (`autoPublish: false` met `draft: false`). Nooit iets direct publiceren, nooit `createScheduledPostForReview` of `sendScheduledPostForReview`. De hooks in `.claude/settings.json` blokkeren alles wat hier niet aan voldoet (zie `.claude/hooks/metricool-guard.js`).
 2. **Bestaande posts en concepten blijven ongemoeid.** Nooit wijzigen of verwijderen. Enige uitzondering: een automatische publicatie uit de ledger die bij de nacontrole fout blijkt, zet je met `updateScheduledPost` terug naar concept (`draft: true`, `autoPublish: false`, verder alles gelijk) en je meldt het. Is een concept fout, meld het dan in de samenvatting; de eigenaar past het zelf aan. Plan niet binnen 60 minuten van een bestaande post.
 3. **Geen verzonnen feiten.** Elk cijfer in een post of in de onderbouwing heeft een bron (titel + URL) of komt uit Metricool. Lukt verificatie niet, schrijf het dan niet op. Noem bronnen in de onderbouwing; zeg erbij als je alleen een zoeksamenvatting zag.
 4. **Geen garanties.** Kansrijkheid is een inschatting (1–10) met reden. Nooit "viral", "gegarandeerd bereik" of beloftes over resultaten — niet in posts en niet in het dashboard.
@@ -72,28 +72,39 @@ Doeldatum = **de eerstvolgende beschikbare publicatiedag**: de eerste dag vanaf 
 5. **Ideeën → twee posts.** Bedenk eerst minstens vier ideeën en kies de twee sterkste (onderbouw de keuze voor carrousel of afbeelding). Schrijf per post: format, pijler, hook, caption, hashtags, CTA, visuele specificatie, kansrijkheid (1–10) + waarom (verwijs naar trends en eigen data), bronnen.
 6. **Beelden maken.** Schrijf per post een spec (zie `tools/voorbeeld-*.json`): `kind` = `image` (1 slide), `carousel` (5–8 slides, laatste = `cta`) of `reel` (4–6 scènes, 10–20 s totaal, eerste scène is de hook). Draai `node tools/render.js spec.json out/`. Bekijk het resultaat (montage/screenshot) en los afgekapte of te volle tekst op.
 7. **Uploaden.** Kopieer naar `media/JJJJ/MM/DD/`, commit ("Media JJJJ-MM-DD"), `git push origin main`. Gebruik URL's vastgepind op de commit: `https://raw.githubusercontent.com/metadesigns-web/metadesigns-content/<commit-sha>/media/...`. Video's > 50 MB: niet pushen; meld het in het dashboard.
-8. **Naar Metricool.** Standaard automatisch publiceren; bepaal per post volgens "Automatisch publiceren" of er een reden is om concept te maken, en voer bij automatisch publiceren de controle uit. `createScheduledPost` per post: concept = `draft: true`, `autoPublish: false`; automatische publicatie = `draft: false`, `autoPublish: true`; `providers: [{"network":"instagram"}]` (= `metadesigns.1`), `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat er voor de doeldatum precies twee agent-posts staan, met de bedoelde status (concept of automatisch), en commit/push de ledger als er automatisch is ingepland. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
+8. **Naar Metricool.** Elke post als automatische publicatie (zie "Automatisch publiceren"), na de controle hieronder; alleen bij maandlimiet of technische weigering als concept, met melding. `createScheduledPost` per post: concept = `draft: true`, `autoPublish: false`; automatische publicatie = `draft: false`, `autoPublish: true`; `providers: [{"network":"instagram"}]` (= `metadesigns.1`), `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat er voor de doeldatum precies twee agent-posts staan, met de bedoelde status (concept of automatisch), en commit/push de ledger als er automatisch is ingepland. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
 9. **Dashboard bijwerken** (zie "Dashboard"). Daarna een korte samenvatting als eindbericht: doeldatum, de twee posts met tijd en status (concept of automatisch ingepland), links naar de Metricool-planner, de maandteller (x/20), en eventuele problemen.
 
-## Automatisch publiceren — de standaard (maximaal 20 per kalendermaand)
+## Automatisch publiceren — ALLE nieuwe posts (maximaal 20 per kalendermaand)
 
-**Standaard is automatisch publiceren.** Elke nieuwe geschikte Instagram-post (Reel, carrousel of losse afbeelding) wordt aangemaakt met precies deze instellingen:
+**Elke nieuwe post die de agent aanmaakt (Reel, carrousel én losse afbeelding) wordt echt ingepland als automatische publicatie**, met exact deze Metricool-instellingen in `createScheduledPost`:
 
 ```json
-"blogId": "8006283", "autoPublish": true, "draft": false,
-"providers": [{"network": "instagram"}], "instagramData": {"type": "REEL" | "POST", "autoPublish": true, ...}
+"blogId": "8006283",
+"date": "<JJJJ-MM-DDTHH:MM:SS+01:00 of +02:00>",
+"info": { "autoPublish": true, "draft": false,
+          "providers": [{"network": "instagram"}],
+          "publicationDate": {"dateTime": "<JJJJ-MM-DDTHH:MM:SS>", "timezone": "Europe/Amsterdam"},
+          "instagramData": {"type": "REEL" | "POST", "autoPublish": true, ...} }
 ```
 
-(Instagram `metadesigns.1`, merk MetaDesigns 8006283.) Een post wordt **alleen** concept (`draft: true`, `autoPublish: false`) als automatisch publiceren niet kan of mag. Meld dat dan altijd, met de reden, in de samenvatting én in het veld `publish_note` in de dataset `posts`.
+- `autoPublish: true` = Metricool publiceert zelf via de API op het geplande tijdstip. (`autoPublish: false` = alleen een pushmelding om handmatig te publiceren: **verboden**, de hook blokkeert dit.)
+- `draft: false` = echt ingepland, geen concept.
+- `instagramData.autoPublish: true` expliciet meesturen.
+- Instagram-account `metadesigns.1` via merk MetaDesigns 8006283 (accountcontrole met `getBrandSettings` < 6 uur oud, hook-verplicht).
+- Na aanmaak moet Metricool tonen: `autoPublish: true`, `draft: false`, `instagramData.autoPublish: true`, `providers[0].network: "instagram"` met `status: "PENDING"` (`detailedStatus: "Pending"`).
 
-**Teller (ledger).** `.claude/state/autopublish-ledger.json` in deze repo. De PostToolUse-hook telt elke aangemaakte automatische publicatie; de PreToolUse-hook weigert de 21e van een maand en een tweede op dezelfde dag. Commit en push de ledger **direct** na elke automatische publicatie (`git add .claude/state/ && git commit && git push`), zodat een nieuwe container dezelfde telling heeft. Pas de ledger nooit met de hand aan, behalve om hem na een containerwissel te herstellen uit git.
+Maak content daarom altijd publicatieklaar: alleen geverifieerde cijfers met bron, geen acties die vóór of op de publicatiedag aflopen, geen gevoelige onderwerpen. Twee automatische publicaties liggen minstens 2 uur uit elkaar (hook-verplicht).
 
-**Wanneer een geschikte post tóch concept wordt (de enige redenen):**
-1. *Maandlimiet:* `gebruikt` (actieve ledger-items in de maand van de doeldatum) is 20.
-2. *Spreiding:* `gebruikt` ≥ `tempo` = afgerond(20 × dag-van-de-maand ÷ dagen-in-de-maand). Zo blijven er publicaties over voor de rest van de maand (gemiddeld 2 van de 3 dagen één automatische publicatie).
-3. *Maximaal 1 per dag:* staat er voor die dag al een automatische publicatie, dan wordt de tweede post concept. Kies daarom per dag de post met de hoogste kansrijkheid (bij gelijke score de Reel) voor automatisch publiceren, op het beste tijdslot van die dag (08:00–21:59).
-4. *Niet geschikt:* een cijfer of bron die je niet volledig kon verifiëren, een tijdgebonden actie die vóór of op de publicatiedag afloopt, een gevoelig onderwerp, of twijfel bij de controle hieronder.
-5. *Technisch niet mogelijk:* de hook of Metricool weigert de automatische publicatie, of het antwoord van Metricool bevestigt `autoPublish: true` / `draft: false` niet. Maak de post dan als concept aan (of zet hem terug naar concept) en meld de foutmelding letterlijk.
+**Teller (ledger).** `.claude/state/autopublish-ledger.json` in deze repo telt álle automatische publicaties per kalendermaand: die van de agent (via de record-hook bij aanmaak) én die in Metricool op een andere manier op automatisch staan (bijv. door de eigenaar omgezet; de record-hook voegt ze toe als `source: "extern"` zodra `getScheduledPosts` ze toont). Roep daarom aan het begin van elke run `getScheduledPosts` aan voor de hele lopende en volgende maand. Commit en push de ledger **direct** na elke wijziging (`git add .claude/state/ && git commit && git push`). Pas de ledger nooit met de hand aan, behalve om hem na een containerwissel te herstellen uit git.
+
+**Wanneer automatisch publiceren niet kan** (de enige gevallen):
+1. *Maandlimiet bereikt:* de ledger telt 20 actieve automatische publicaties in de maand van de publicatiedatum. De hook weigert dan de 21e.
+2. *Technisch geweigerd:* de hook of Metricool weigert de aanmaak, of het antwoord/`getScheduledPosts` bevestigt `autoPublish: true` + `PENDING` niet (dan staat er een regel in `.claude/state/autopublish-warnings.json`).
+
+In die gevallen: **niet** stilzwijgend handmatig inplannen. Maak de post aan als concept (`draft: true`, `autoPublish: false`) zodat het werk niet verloren gaat, zet `status: "concept"` en `publish_note` met de exacte reden in de dataset `posts`, en meld het bovenaan je samenvatting. Is een post al aangemaakt maar bevestigt Metricool automatisch publiceren niet: zet hem terug naar concept (regel 2) en meld het.
+
+**Gevolg van de limiet:** met 2 posts per dag is de limiet van 20 meestal rond dag 10 van de maand bereikt; daarna wordt alles concept tot de 1e van de volgende maand. Meld in elke samenvatting de stand (x/20) en vanaf 16/20 expliciet hoeveel er nog over zijn.
 
 **Vóór iedere aanmaak controleren dat automatisch publiceren echt is ingeschakeld:** lees de JSON die je gaat versturen terug en bevestig `autoPublish: true`, `draft: false`, `instagramData.autoPublish: true`, `blogId` 8006283 en alleen provider `instagram`. **Na** de aanmaak: het antwoord van Metricool moet `autoPublish: true`, `draft: false` en `instagramData.autoPublish: true` tonen; daarna nog eens via `getScheduledPosts`. Wijkt iets af: terug naar concept (regel 2) en melden. De record-hook schrijft afwijkingen ook naar `.claude/state/autopublish-warnings.json`; lees dat bestand aan het eind van de run en meld wat erin staat.
 
