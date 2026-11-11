@@ -77,9 +77,9 @@ Het dashboard (Artifact-type "Data") leest bestanden die de agent per run vervan
 
 | Dataset | Kolommen |
 |---|---|
-| `posts` | `id` (JJJJ-MM-DD-a/b/c), `run_date`, `publish_date`, `time` (HH:MM), `format` (Carrousel/Reel/Afbeelding), `pillar`, `hook`, `caption`, `hashtags`, `cta`, `visual`, `slides` (aantal), `chance` (1–10), `why`, `sources` (regels "titel — url"), `media` (URL's gescheiden door spatie), `planner_url`, `uuid`, `status` (concept/mislukt/gepubliceerd/afgewezen) |
-| `trends` | `run_date`, `trend`, `type` (Format/Onderwerp/Hook/Algoritme/Seizoen/Eigen data/Concurrent), `evidence`, `source_title`, `source_url`, `used_in` (post-id's of leeg) |
-| `times` | `run_date`, `date`, `weekday`, `slot1`, `slot2`, `slot3`, `score` (hoogste Metricool-waarde), `note` |
+| `posts` | `id` (JJJJ-MM-DD-a/b/c, datum = publicatiedatum), `run_date` (echte datum van de run), `publish_date` (het dashboard groepeert hierop), `time` (HH:MM), `format` (Carrousel/Reel/Afbeelding), `pillar`, `hook`, `caption`, `hashtags`, `cta`, `visual`, `slides` (aantal), `chance` (1–10), `why`, `sources` (regels "titel — url"), `media` (URL's gescheiden door spatie), `planner_url`, `uuid`, `status` (concept/mislukt/gepubliceerd/afgewezen) |
+| `trends` | `run_date`, `for_date` (= publicatiedatum van de posts waarvoor dit onderzoek gold), `trend`, `type` (Format/Onderwerp/Hook/Algoritme/Seizoen/Eigen data/Concurrent), `evidence`, `source_title`, `source_url`, `used_in` (post-id's of leeg) |
+| `times` | `run_date`, `for_date` (idem), `date`, `weekday`, `slot1`, `slot2`, `slot3`, `score` (hoogste Metricool-waarde), `note` |
 | `weekly` | `week` (JJJJ-Www), `period`, `posts`, `reach`, `views`, `interactions`, `saves`, `shares`, `followers`, `best_post`, `best_url`, `worked`, `didnt`, `action` |
 
 `ig_posts` en `ig_reels` zijn live Metricool-queries; die hoeft de agent niet bij te werken (einddatum staat op 31-12-2027).
