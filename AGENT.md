@@ -42,7 +42,12 @@ Tot en met 11 november was dit merk gekoppeld aan `_sjoerdmetadesigns`; daarna a
 
 ## Contentmix (vaste formats; de wekelijkse analyse stuurt pijlers, onderwerpen, hooks en tijden)
 
-Per dag precies drie posts: altijd één **Reel**, één **carrousel** en één **losse afbeelding** (vast, door de eigenaar bepaald), elk met een andere pijler:
+Per dag precies **twee** posts (vast, door de eigenaar bepaald sinds 12 nov 2026):
+
+1. altijd één **Reel**;
+2. één **carrousel óf losse afbeelding**, gekozen op het onderwerp: carrousel voor stappen, lijstjes, uitleg of voorbeelden (bewaarbaar); losse afbeelding voor één sterke boodschap, een cijfer, een vraag of een actie (deelbaar).
+
+De twee posts hebben elk een andere pijler:
 
 | Pijler | Doel | Voorbeelden |
 |---|---|---|
@@ -52,23 +57,23 @@ Per dag precies drie posts: altijd één **Reel**, één **carrousel** en één 
 | Herkenning | delen/reacties | pijnpunten van ondernemers, mythes vs feiten, vragen |
 | Lokaal | relevantie | Zeeuwse ondernemers, "zoek in je eigen plaats" |
 
-Maximaal één post per dag met een harde verkoop-CTA; de andere twee eindigen met een zachte CTA (bewaren, doorsturen, reageren, DM met vraag).
+Maximaal één post per dag met een harde verkoop-CTA; de andere eindigt met een zachte CTA (bewaren, doorsturen, reageren, DM met vraag).
 
 **Variatie:** lees de laatste 30 dagen in dataset `posts` én de captions van gepubliceerde posts (Metricool IGPO03/IGRE03, laatste 30 dagen). Hergebruik geen hook, kerncijfer, onderwerp-invalshoek of opening van de laatste 14 dagen en geen identieke caption ooit; niet dezelfde pijler op hetzelfde tijdslot twee dagen achter elkaar; wissel voorbeeldberoepen en -plaatsen af.
 
 ## Dagelijkse run
 
-Doeldatum = **de eerstvolgende beschikbare publicatiedag**: de eerste dag vanaf morgen (Europe/Amsterdam) waarvoor in de dataset `posts` nog geen agent-concepten staan. Elke run maakt voor precies één dag precies drie concepten. Controleer vóór het aanmaken met `getScheduledPosts` dat er voor die dag nog geen agent-concepten in Metricool staan (anders: de volgende dag). Posts van de eigenaar op die dag maken de dag niet bezet; plan er alleen omheen.
+Doeldatum = **de eerstvolgende beschikbare publicatiedag**: de eerste dag vanaf morgen (Europe/Amsterdam) waarvoor in de dataset `posts` nog geen agent-concepten staan. Elke run maakt voor precies één dag precies twee concepten (1 Reel + 1 carrousel of afbeelding). Controleer vóór het aanmaken met `getScheduledPosts` dat er voor die dag nog geen agent-concepten in Metricool staan (anders: de volgende dag). Posts van de eigenaar op die dag maken de dag niet bezet; plan er alleen omheen.
 
 1. **Voorbereiden.** Voer de accountcontrole (regel 0) uit. Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
 2. **Maandag eerst: weekanalyse** (zie hieronder).
-3. **Onderzoek (min. 5 zoekopdrachten, `WebSearch`).** Actuele Instagram-/Reels-trends (deze week), algoritme-updates, contentformats voor dienstverleners/webdesign, Nederlands ondernemersnieuws (mkb, websites, Google/AI-zoeken, KVK, feestdagen/seizoen). Metricool: `getAnalyticsDataByMetrics` voor eigen posts (IGPO*) en Reels (IGRE*) van de laatste 30 dagen, en concurrenten (IGCO*, IGCP*, IGCR*) als die in Metricool zijn ingesteld. Noteer 4–8 trends met bewijs + bron.
-4. **Publicatietijden.** `getBestTimeToPostByNetwork` (instagram, komende 7 dagen). Kies voor de doeldatum drie tijdslots met de hoogste waarden, minstens 2 uur uit elkaar, en niet binnen 60 min van een bestaande post (`getScheduledPosts`). Combineer met eigen resultaten per uur uit `weekly` zodra er genoeg data is (≥ 20 posts).
-5. **Ideeën → drie posts.** Schrijf per post: format, pijler, hook, caption, hashtags, CTA, visuele specificatie, kansrijkheid (1–10) + waarom (verwijs naar trends en eigen data), bronnen.
+3. **Onderzoek (min. 5 zoekopdrachten, `WebSearch`).** Actuele Instagram-/Reels-trends (deze week), algoritme-updates, contentformats voor dienstverleners/webdesign, Nederlands ondernemersnieuws (mkb, websites, Google/AI-zoeken, KVK, feestdagen/seizoen). Metricool: `getAnalyticsDataByMetrics` voor eigen posts (IGPO*) en Reels (IGRE*) van de laatste 30 dagen, **Concurrentieonderzoek (dagelijks, verplicht):** haal concurrenten op via Metricool (IGCO*, IGCP*, IGCR*); staan er (nog) geen in Metricool, zoek dan met `WebSearch` naar Nederlandse webdesigners/websitebouwers voor ondernemers (o.a. Zeeland, Brabant, landelijke budgetaanbieders) en hun aanbod, acties en contentthema's. Neem minstens één trend van type `Concurrent` op en vermeld als er geen concurrentiedata beschikbaar was. Noteer 4–8 trends met bewijs + bron.
+4. **Publicatietijden.** `getBestTimeToPostByNetwork` (instagram, komende 7 dagen). Kies voor de doeldatum twee tijdslots met de hoogste waarden, minstens 2 uur uit elkaar, en niet binnen 60 min van een bestaande post (`getScheduledPosts`). Combineer met eigen resultaten per uur uit `weekly` zodra er genoeg data is (≥ 20 posts).
+5. **Ideeën → twee posts.** Bedenk eerst minstens vier ideeën en kies de twee sterkste (onderbouw de keuze voor carrousel of afbeelding). Schrijf per post: format, pijler, hook, caption, hashtags, CTA, visuele specificatie, kansrijkheid (1–10) + waarom (verwijs naar trends en eigen data), bronnen.
 6. **Beelden maken.** Schrijf per post een spec (zie `tools/voorbeeld-*.json`): `kind` = `image` (1 slide), `carousel` (5–8 slides, laatste = `cta`) of `reel` (4–6 scènes, 10–20 s totaal, eerste scène is de hook). Draai `node tools/render.js spec.json out/`. Bekijk het resultaat (montage/screenshot) en los afgekapte of te volle tekst op.
 7. **Uploaden.** Kopieer naar `media/JJJJ/MM/DD/`, commit ("Media JJJJ-MM-DD"), `git push origin main`. Gebruik URL's vastgepind op de commit: `https://raw.githubusercontent.com/metadesigns-web/metadesigns-content/<commit-sha>/media/...`. Video's > 50 MB: niet pushen; meld het in het dashboard.
-8. **Concepten in Metricool.** `createScheduledPost` per post: `draft: true`, `autoPublish: false`, `providers: [{"network":"instagram"}]` (= `metadesigns.1`), `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat alle drie `draft: true` hebben. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
-9. **Dashboard bijwerken** (zie "Dashboard"). Daarna een korte samenvatting als eindbericht: doeldatum, drie posts met tijd, links naar de Metricool-planner, en eventuele problemen.
+8. **Concepten in Metricool.** `createScheduledPost` per post: `draft: true`, `autoPublish: false`, `providers: [{"network":"instagram"}]` (= `metadesigns.1`), `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat beide `draft: true` hebben en dat er voor de doeldatum precies twee agent-concepten zijn. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
+9. **Dashboard bijwerken** (zie "Dashboard"). Daarna een korte samenvatting als eindbericht: doeldatum, de twee posts met tijd, links naar de Metricool-planner, en eventuele problemen.
 
 ## Weekanalyse (elke maandag, vóór de dagelijkse stappen)
 
@@ -84,7 +89,7 @@ Het dashboard (Artifact-type "Data") leest bestanden die de agent per run vervan
 
 | Dataset | Kolommen |
 |---|---|
-| `posts` | `id` (JJJJ-MM-DD-a/b/c, datum = publicatiedatum), `run_date` (echte datum van de run), `publish_date` (het dashboard groepeert hierop), `time` (HH:MM), `format` (Carrousel/Reel/Afbeelding), `pillar`, `hook`, `caption`, `hashtags`, `cta`, `visual`, `slides` (aantal), `chance` (1–10), `why`, `sources` (regels "titel — url"), `media` (URL's gescheiden door spatie), `planner_url`, `uuid`, `status` (concept/mislukt/gepubliceerd/afgewezen) |
+| `posts` | `id` (JJJJ-MM-DD-a/b, datum = publicatiedatum; tot 13 nov ook -c), `run_date` (echte datum van de run), `publish_date` (het dashboard groepeert hierop), `time` (HH:MM), `format` (Carrousel/Reel/Afbeelding), `pillar`, `hook`, `caption`, `hashtags`, `cta`, `visual`, `slides` (aantal), `chance` (1–10), `why`, `sources` (regels "titel — url"), `media` (URL's gescheiden door spatie), `planner_url`, `uuid`, `status` (concept/mislukt/gepubliceerd/afgewezen) |
 | `trends` | `run_date`, `for_date` (= publicatiedatum van de posts waarvoor dit onderzoek gold), `trend`, `type` (Format/Onderwerp/Hook/Algoritme/Seizoen/Eigen data/Concurrent), `evidence`, `source_title`, `source_url`, `used_in` (post-id's of leeg) |
 | `times` | `run_date`, `for_date` (idem), `date`, `weekday`, `slot1`, `slot2`, `slot3`, `score` (hoogste Metricool-waarde), `note` |
 | `weekly` | `week` (JJJJ-Www), `period`, `posts`, `reach`, `views`, `interactions`, `saves`, `shares`, `followers`, `best_post`, `best_url`, `worked`, `didnt`, `action` |
