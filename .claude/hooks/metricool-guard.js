@@ -75,6 +75,7 @@ process.stdin.on('end', () => {
   if (Date.now() - Date.parse(bc.at) > 6 * 3600e3) block('accountcontrole is ouder dan 6 uur. Roep getBrandSettings opnieuw aan.');
 
   const ig = info.instagramData || {};
+  if (ig.autoPublish === false) block('instagramData.autoPublish is false terwijl autoPublish true is; zet beide op true.');
   const type = ig.type || 'POST';
   if (!['POST', 'REEL'].includes(type)) block(`type ${type} mag niet automatisch worden gepubliceerd (alleen POST/carrousel en REEL).`);
 

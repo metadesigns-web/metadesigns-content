@@ -5,6 +5,8 @@
 //  - createScheduledPost met autoPublish=true en een geslaagd antwoord: voegt de post toe aan
 //    .claude/state/autopublish-ledger.json (maandteller voor de limiet van 20).
 //  - updateScheduledPost (terug naar concept): markeert de ledger-regel als geannuleerd.
+//  - Bevestigt Metricool automatisch publiceren niet (autoPublish/draft), dan komt er een regel in
+//    .claude/state/autopublish-warnings.json die de agent moet melden. (De post telt wel mee: veilig voor de limiet.)
 // Deze hook blokkeert nooit; hij legt alleen vast.
 const fs = require('fs');
 const path = require('path');
@@ -12,6 +14,7 @@ const DIR = process.env.CLAUDE_PROJECT_DIR || path.resolve(__dirname, '..', '..'
 const STATE = path.join(DIR, '.claude', 'state');
 const LEDGER = path.join(STATE, 'autopublish-ledger.json');
 const BRANDCHECK = path.join(STATE, 'brand-check.json');
+const WARN = path.join(STATE, 'autopublish-warnings.json');
 
 let raw = '';
 process.stdin.on('data', (c) => (raw += c));
@@ -34,6 +37,15 @@ process.stdin.on('end', () => {
   let info = {}; try { info = typeof input.info === 'string' ? JSON.parse(input.info) : (input.info || {}); } catch {}
   const data = resp && resp.data;
 
+  if (tool === 'createScheduledPost' && info.autoPublish === true && info.draft === false) {
+    const ig = (data && data.instagramData) || {};
+    const confirmed = !!data && data.autoPublish === true && data.draft === false && ig.autoPublish !== false;
+    if (!confirmed) {
+      const w = read(WARN, []);
+      w.push({ at: new Date().toISOString(), uuid: data && data.uuid ? String(data.uuid) : null, problem: data ? `Metricool bevestigt automatisch publiceren niet (autoPublish=${data.autoPublish}, draft=${data.draft}, instagramData.autoPublish=${ig.autoPublish})` : 'geen geldig antwoord van Metricool', hook: String(info.text || '').split('\n')[0].slice(0, 80) });
+      write(WARN, w);
+    }
+  }
   if (tool === 'createScheduledPost' && info.autoPublish === true && info.draft === false && data && data.uuid) {
     const dt = String((data.publicationDate && data.publicationDate.dateTime) || (info.publicationDate && info.publicationDate.dateTime) || '');
     const ledger = read(LEDGER, { months: {} });
