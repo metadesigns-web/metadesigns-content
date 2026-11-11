@@ -17,8 +17,8 @@ Wijzigingen in strategie of huisstijl horen hier (door de eigenaar), niet in los
 ## Harde regels (nooit overtreden)
 
 0. **Accountcontrole vóór alles.** Roep aan het begin van elke run `getBrandSettings` aan. Ga alleen door als er een merk is met `id` 8006283, `label` "MetaDesigns" en `networksData.instagramData` "metadesigns.1". Wijkt iets af (ander label, ander Instagram-account, extra of ontbrekend merk): maak niets aan, wijzig niets en meld de afwijking in je samenvatting. Gebruik nooit een ander merk of netwerk, ook niet als het in Metricool beschikbaar is.
-1. **Nooit publiceren.** Elke post gaat naar Metricool met `"draft": true` én `"autoPublish": false`. Gebruik alleen `createScheduledPost` (en `updateScheduledPost` voor eigen concepten). Gebruik nooit `createScheduledPostForReview` of `sendScheduledPostForReview`, en zet nooit `draft` op false.
-2. **Raak andermans posts niet aan.** Wijzig alleen concepten waarvan de `uuid` in de dataset `posts` van het dashboard staat. Posts die de eigenaar zelf heeft ingepland blijven ongemoeid; plan er niet binnen 60 minuten omheen.
+1. **Nooit publiceren.** Elke post gaat naar Metricool met `"draft": true` én `"autoPublish": false`. Gebruik alleen `createScheduledPost`. Gebruik nooit `updateScheduledPost`, `createScheduledPostForReview` of `sendScheduledPostForReview`, en zet nooit `draft` op false. Een hook in `.claude/settings.json` blokkeert elke Metricool-schrijfactie die hier niet aan voldoet.
+2. **Bestaande posts en concepten blijven ongemoeid.** Nooit wijzigen of verwijderen, ook niet die de agent eerder zelf maakte. Is een concept fout, meld het dan in de samenvatting; de eigenaar past het zelf aan. Plan niet binnen 60 minuten van een bestaande post.
 3. **Geen verzonnen feiten.** Elk cijfer in een post of in de onderbouwing heeft een bron (titel + URL) of komt uit Metricool. Lukt verificatie niet, schrijf het dan niet op. Noem bronnen in de onderbouwing; zeg erbij als je alleen een zoeksamenvatting zag.
 4. **Geen garanties.** Kansrijkheid is een inschatting (1–10) met reden. Nooit "viral", "gegarandeerd bereik" of beloftes over resultaten — niet in posts en niet in het dashboard.
 5. **Geen auteursrechtelijk beschermd materiaal.** Alleen eigen beelden uit `tools/render.js`. Geen label-muziek; Reels krijgen een stil spoor (eigen voice-over of audio voegt de eigenaar toe).
@@ -40,9 +40,9 @@ Tot en met 11 november was dit merk gekoppeld aan `_sjoerdmetadesigns`; daarna a
 - **Visueel:** donkerblauw `#0A1A33`, MetaDesigns-blauw `#1F5BFF`, lichtblauw `#EAF0FF`, wit. Lettertype Inter Display, vet voor koppen. Woordmerk "metadesigns" + blauwe stip. Accentwoorden in de kop tussen `*sterretjes*`.
 - **Captions:** hook in de eerste regel (max. ~90 tekens), dan waarde, dan één duidelijke CTA. 5–10 hashtags: mix van breed (#website #ondernemer #zzp #mkb), niche (#websitelatenmaken #lokaleondernemer) en merk (#metadesigns). Altijd `mediaAltText` invullen.
 
-## Contentmix (startpunt — de wekelijkse analyse past dit aan)
+## Contentmix (vaste formats; de wekelijkse analyse stuurt pijlers, onderwerpen, hooks en tijden)
 
-Per dag drie verschillende posts: standaard één **carrousel**, één **Reel** en één **losse afbeelding**, elk met een andere pijler:
+Per dag precies drie posts: altijd één **Reel**, één **carrousel** en één **losse afbeelding** (vast, door de eigenaar bepaald), elk met een andere pijler:
 
 | Pijler | Doel | Voorbeelden |
 |---|---|---|
@@ -54,11 +54,11 @@ Per dag drie verschillende posts: standaard één **carrousel**, één **Reel** 
 
 Maximaal één post per dag met een harde verkoop-CTA; de andere twee eindigen met een zachte CTA (bewaren, doorsturen, reageren, DM met vraag).
 
-**Variatie:** lees de laatste 30 dagen in dataset `posts`. Hergebruik geen hook, kerncijfer of opening van de laatste 14 dagen; niet dezelfde pijler op hetzelfde tijdslot twee dagen achter elkaar; wissel voorbeeldberoepen en -plaatsen af.
+**Variatie:** lees de laatste 30 dagen in dataset `posts` én de captions van gepubliceerde posts (Metricool IGPO03/IGRE03, laatste 30 dagen). Hergebruik geen hook, kerncijfer, onderwerp-invalshoek of opening van de laatste 14 dagen en geen identieke caption ooit; niet dezelfde pijler op hetzelfde tijdslot twee dagen achter elkaar; wissel voorbeeldberoepen en -plaatsen af.
 
 ## Dagelijkse run
 
-Doeldatum = **morgen** (Amsterdam). Heeft morgen al drie concepten met een `uuid` uit `posts`, neem dan de eerstvolgende dag zonder agent-concepten, maar nooit verder dan vandaag + 3. Is alles tot en met vandaag + 3 gevuld, maak dan geen nieuwe posts en werk alleen het dashboard bij.
+Doeldatum = **de eerstvolgende beschikbare publicatiedag**: de eerste dag vanaf morgen (Europe/Amsterdam) waarvoor in de dataset `posts` nog geen agent-concepten staan. Elke run maakt voor precies één dag precies drie concepten. Controleer vóór het aanmaken met `getScheduledPosts` dat er voor die dag nog geen agent-concepten in Metricool staan (anders: de volgende dag). Posts van de eigenaar op die dag maken de dag niet bezet; plan er alleen omheen.
 
 1. **Voorbereiden.** Voer de accountcontrole (regel 0) uit. Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
 2. **Maandag eerst: weekanalyse** (zie hieronder).

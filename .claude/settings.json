@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__Metricool_Social_Media_Management__.*",
+        "hooks": [
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/metricool-guard.js\"" }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "mcp__Metricool_Social_Media_Management__updateScheduledPost",
+      "mcp__Metricool_Social_Media_Management__createScheduledPostForReview",
+      "mcp__Metricool_Social_Media_Management__sendScheduledPostForReview"
+    ]
+  }
+}
