@@ -51,7 +51,24 @@ process.stdin.on('end', () => {
         known.add(String(p.uuid)); added++;
       }
     });
-    if (added) write(LEDGER, ledger);
+    // Posts die nog in de toekomst lagen maar niet meer in de planner staan, zijn verwijderd of
+    // teruggezet: die tellen niet meer mee (cancelled). Alleen binnen het opgevraagde datumbereik,
+    // en alleen als het geplande tijdstip nog minstens 15 minuten in de toekomst ligt
+    // (gepubliceerde posts verdwijnen ook uit de planner, maar die liggen dan in het verleden).
+    const inp = ev.tool_input || {};
+    const from = Date.parse(inp.fromDate), to = Date.parse(inp.toDate);
+    const live = new Set(resp.data.filter((p) => p && p.autoPublish === true && p.draft === false).map((p) => String(p.uuid)));
+    let cancelled = 0;
+    if (!isNaN(from) && !isNaN(to)) {
+      Object.values(ledger.months).flat().forEach((e) => {
+        if (e.cancelled || !e.date || !e.time) return;
+        const t = Date.parse(`${e.date}T${e.time}:00${amsOffset(e.date)}`);
+        if (t >= from && t <= to && t > Date.now() + 15 * 60e3 && !live.has(String(e.uuid))) {
+          e.cancelled = new Date().toISOString(); e.cancelReason = 'niet meer automatisch ingepland in Metricool (verwijderd of teruggezet)'; cancelled++;
+        }
+      });
+    }
+    if (added || cancelled) write(LEDGER, ledger);
     process.exit(0);
   }
 
@@ -102,3 +119,9 @@ function toObject(r) {
 }
 function read(f, d) { try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return d; } }
 function write(f, v) { fs.writeFileSync(f, JSON.stringify(v, null, 2) + '\n'); }
+function amsOffset(day) {
+  const [y, m, d] = day.split('-').map(Number);
+  const noon = new Date(Date.UTC(y, m - 1, d, 12));
+  const h = +new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Amsterdam', hour: '2-digit', hourCycle: 'h23' }).format(noon);
+  return h === 14 ? '+02:00' : '+01:00';
+}

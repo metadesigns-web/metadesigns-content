@@ -27,7 +27,9 @@
         "uuid": "952338874094208120",
         "created": "2026-11-11T23:36:15.293Z",
         "source": "extern",
-        "hook": "Nog ruim twee weken: de novemberdeal loopt t/m 30 november. 🔵"
+        "hook": "Nog ruim twee weken: de novemberdeal loopt t/m 30 november. 🔵",
+        "cancelled": "2026-11-11T23:47:47.678Z",
+        "cancelReason": "niet meer automatisch ingepland in Metricool (verwijderd of teruggezet)"
       },
       {
         "date": "2026-11-12",
@@ -37,7 +39,29 @@
         "uuid": "-4527454197613574659",
         "created": "2026-11-11T23:36:15.294Z",
         "source": "extern",
-        "hook": "Ken jij een ondernemer zonder website? 👀"
+        "hook": "Ken jij een ondernemer zonder website? 👀",
+        "cancelled": "2026-11-11T23:47:47.679Z",
+        "cancelReason": "niet meer automatisch ingepland in Metricool (verwijderd of teruggezet)"
+      },
+      {
+        "date": "2026-11-12",
+        "time": "10:00",
+        "type": "POST",
+        "id": 425091374,
+        "uuid": "-2676821948372791506",
+        "created": "2026-11-11T23:47:47.663Z",
+        "source": "extern",
+        "hook": "Je klant zoekt niet meer alleen via Google. Steeds vaker vraagt hij het aan Chat"
+      },
+      {
+        "date": "2026-11-12",
+        "time": "12:00",
+        "type": "REEL",
+        "id": 425091470,
+        "uuid": "2897548612987668949",
+        "created": "2026-11-11T23:47:47.663Z",
+        "source": "extern",
+        "hook": "Een website laten maken hoeft geen maandenlang project te zijn. 👇"
       }
     ]
   }
