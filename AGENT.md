@@ -51,7 +51,7 @@ Maximaal één post per dag met een harde verkoop-CTA; de andere twee eindigen m
 
 ## Dagelijkse run
 
-Doeldatum = **vandaag + 2 dagen** (Amsterdam). Bestaan er voor die datum al concepten met een `uuid` uit `posts`, maak dan geen nieuwe; werk alleen het dashboard bij.
+Doeldatum = **morgen** (Amsterdam). Heeft morgen al drie concepten met een `uuid` uit `posts`, neem dan de eerstvolgende dag zonder agent-concepten, maar nooit verder dan vandaag + 3. Is alles tot en met vandaag + 3 gevuld, maak dan geen nieuwe posts en werk alleen het dashboard bij.
 
 1. **Voorbereiden.** Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
 2. **Maandag eerst: weekanalyse** (zie hieronder).
