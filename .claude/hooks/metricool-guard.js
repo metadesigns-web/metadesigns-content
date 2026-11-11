@@ -16,7 +16,8 @@
 //      * tijdzone Europe/Amsterdam, datum/tijd gelijk aan 'date', tussen 08:00 en 21:59,
 //        minstens 2 uur en hoogstens 35 dagen in de toekomst;
 //      * maandlimiet: minder dan 20 automatische publicaties in die kalendermaand (ledger),
-//        en hoogstens 1 automatische publicatie per dag.
+//        en minstens 2 uur tussen twee automatische publicaties.
+//  - Handmatig inplannen (draft=false, autoPublish=false: pushmelding, zelf publiceren) is altijd geblokkeerd.
 //  - updateScheduledPost alleen om een eigen automatische publicatie uit de ledger
 //    TERUG te zetten naar concept (draft=true, autoPublish=false). Verder niets.
 // Al het andere (review-functies, onbekende tools, andere merken/netwerken) wordt geblokkeerd.
@@ -67,7 +68,8 @@ process.stdin.on('end', () => {
     if (info.instagramData && info.instagramData.autoPublish === true) block('instagramData.autoPublish mag bij een concept niet true zijn.');
     process.exit(0);
   }
-  if (!(info.draft === false && info.autoPublish === true)) block('alleen twee vormen zijn toegestaan: concept (draft=true, autoPublish=false) of automatische publicatie (draft=false, autoPublish=true).');
+  if (info.draft === false && info.autoPublish !== true) block('handmatig inplannen (autoPublish=false, pushmelding) is niet toegestaan. Gebruik autoPublish=true, of meld dat automatisch publiceren niet kan.');
+  if (!(info.draft === false && info.autoPublish === true)) block('alleen twee vormen zijn toegestaan: automatische publicatie (draft=false, autoPublish=true) of, als dat niet kan, concept (draft=true, autoPublish=false).');
 
   // ---- Automatische publicatie: strenge controles ----
   const bc = readJson(BRANDCHECK, null);
@@ -120,7 +122,8 @@ process.stdin.on('end', () => {
   const month = `${Y}-${Mo}`;
   const active = (ledger.months[month] || []).filter((e) => !e.cancelled);
   if (active.length >= MONTH_LIMIT) block(`maandlimiet bereikt: al ${active.length} automatische publicaties in ${month} (max. ${MONTH_LIMIT}). Bewaar deze post als concept.`);
-  if (active.some((e) => e.date === day)) block(`er staat al een automatische publicatie op ${day} (max. 1 per dag). Bewaar deze post als concept.`);
+  const clash = active.find((e) => e.date && e.time && Math.abs(amsterdamToUtc(...e.date.split('-').map(Number), ...e.time.split(':').map(Number)) - whenUtc) < 2 * 3600e3);
+  if (clash) block(`er staat al een automatische publicatie om ${clash.time} op ${clash.date}; houd minstens 2 uur afstand.`);
   process.exit(0);
 });
 

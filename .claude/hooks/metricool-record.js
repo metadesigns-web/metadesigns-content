@@ -39,10 +39,12 @@ process.stdin.on('end', () => {
 
   if (tool === 'createScheduledPost' && info.autoPublish === true && info.draft === false) {
     const ig = (data && data.instagramData) || {};
-    const confirmed = !!data && data.autoPublish === true && data.draft === false && ig.autoPublish !== false;
+    const prov = (data && Array.isArray(data.providers) ? data.providers : []);
+    const pending = prov.length === 1 && prov[0].network === 'instagram' && String(prov[0].status).toUpperCase() === 'PENDING';
+    const confirmed = !!data && data.autoPublish === true && data.draft === false && ig.autoPublish === true && pending;
     if (!confirmed) {
       const w = read(WARN, []);
-      w.push({ at: new Date().toISOString(), uuid: data && data.uuid ? String(data.uuid) : null, problem: data ? `Metricool bevestigt automatisch publiceren niet (autoPublish=${data.autoPublish}, draft=${data.draft}, instagramData.autoPublish=${ig.autoPublish})` : 'geen geldig antwoord van Metricool', hook: String(info.text || '').split('\n')[0].slice(0, 80) });
+      w.push({ at: new Date().toISOString(), uuid: data && data.uuid ? String(data.uuid) : null, problem: data ? `Metricool bevestigt automatisch publiceren niet (autoPublish=${data.autoPublish}, draft=${data.draft}, instagramData.autoPublish=${ig.autoPublish}, status=${prov.map((x) => x.network + ':' + x.status).join(',')})` : 'geen geldig antwoord van Metricool', hook: String(info.text || '').split('\n')[0].slice(0, 80) });
       write(WARN, w);
     }
   }
