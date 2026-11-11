@@ -9,6 +9,7 @@
 //    .claude/state/autopublish-warnings.json die de agent moet melden. (De post telt wel mee: veilig voor de limiet.)
 //  - getScheduledPosts: telt elke automatische publicatie in Metricool die nog niet in de ledger staat
 //    (bijv. door de eigenaar zelf omgezet) mee als source "extern".
+//  - createScheduledPost als concept: noteert het in ledger.drafts (dag telt als bezet voor tools/plan.js).
 // Deze hook blokkeert nooit; hij legt alleen vast.
 const fs = require('fs');
 const path = require('path');
@@ -95,6 +96,16 @@ process.stdin.on('end', () => {
     if (!ledger.months[month].some((e) => String(e.uuid) === String(data.uuid))) {
       ledger.months[month].push({ date: dt.slice(0, 10), time: dt.slice(11, 16), type: (info.instagramData && info.instagramData.type) || 'POST', id: data.id, uuid: String(data.uuid), created: new Date().toISOString(), hook: String(info.text || '').split('\n')[0].slice(0, 80) });
     }
+    write(LEDGER, ledger);
+  }
+
+  // Concepten die de agent zelf aanmaakt (bijv. maandlimiet bereikt) markeren hun dag als bezet,
+  // zodat de dagplanner (tools/plan.js) er geen tweede keer posts bij maakt.
+  if (tool === 'createScheduledPost' && info.draft === true && data && data.uuid) {
+    const dt = String((data.publicationDate && data.publicationDate.dateTime) || (info.publicationDate && info.publicationDate.dateTime) || '');
+    const ledger = read(LEDGER, { months: {} });
+    ledger.drafts = ledger.drafts || [];
+    if (!ledger.drafts.some((e) => String(e.uuid) === String(data.uuid))) ledger.drafts.push({ date: dt.slice(0, 10), time: dt.slice(11, 16), type: (info.instagramData && info.instagramData.type) || 'POST', uuid: String(data.uuid), created: new Date().toISOString() });
     write(LEDGER, ledger);
   }
 
