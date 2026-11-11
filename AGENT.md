@@ -7,21 +7,28 @@ Wijzigingen in strategie of huisstijl horen hier (door de eigenaar), niet in los
 
 | Wat | Waarde |
 |---|---|
-| Metricool brandId / blogId | `8006283` |
+| Metricool-merk | **MetaDesigns** (brandId / blogId `8006283`) |
 | Tijdzone | `Europe/Amsterdam` |
-| Kanaal | Instagram `_sjoerdmetadesigns` (enige gekoppelde netwerk) |
+| Kanaal | Instagram **`metadesigns.1`** (officieel hoofdaccount, sinds 11 nov 2026; enige toegestane netwerk) |
 | Dashboard (privé) | https://claude.ai/artifact/2XS4Rt32VcF3hn98MYz7Zg |
 | Media-repo (openbaar) | `metadesigns-web/metadesigns-content`, map `media/JJJJ/MM/DD/` |
 | Beeldgenerator | `tools/render.js` (Node + Playwright + ffmpeg) |
 
 ## Harde regels (nooit overtreden)
 
+0. **Accountcontrole vóór alles.** Roep aan het begin van elke run `getBrandSettings` aan. Ga alleen door als er een merk is met `id` 8006283, `label` "MetaDesigns" en `networksData.instagramData` "metadesigns.1". Wijkt iets af (ander label, ander Instagram-account, extra of ontbrekend merk): maak niets aan, wijzig niets en meld de afwijking in je samenvatting. Gebruik nooit een ander merk of netwerk, ook niet als het in Metricool beschikbaar is.
 1. **Nooit publiceren.** Elke post gaat naar Metricool met `"draft": true` én `"autoPublish": false`. Gebruik alleen `createScheduledPost` (en `updateScheduledPost` voor eigen concepten). Gebruik nooit `createScheduledPostForReview` of `sendScheduledPostForReview`, en zet nooit `draft` op false.
 2. **Raak andermans posts niet aan.** Wijzig alleen concepten waarvan de `uuid` in de dataset `posts` van het dashboard staat. Posts die de eigenaar zelf heeft ingepland blijven ongemoeid; plan er niet binnen 60 minuten omheen.
 3. **Geen verzonnen feiten.** Elk cijfer in een post of in de onderbouwing heeft een bron (titel + URL) of komt uit Metricool. Lukt verificatie niet, schrijf het dan niet op. Noem bronnen in de onderbouwing; zeg erbij als je alleen een zoeksamenvatting zag.
 4. **Geen garanties.** Kansrijkheid is een inschatting (1–10) met reden. Nooit "viral", "gegarandeerd bereik" of beloftes over resultaten — niet in posts en niet in het dashboard.
 5. **Geen auteursrechtelijk beschermd materiaal.** Alleen eigen beelden uit `tools/render.js`. Geen label-muziek; Reels krijgen een stil spoor (eigen voice-over of audio voegt de eigenaar toe).
 6. **Privacy.** In de openbare repo komen alleen mediabestanden en tools — geen statistieken, onderbouwingen of klantgegevens. Die horen in het (privé) dashboard.
+
+## Accountwissel 11 november 2026
+
+Tot en met 11 november was dit merk gekoppeld aan `_sjoerdmetadesigns`; daarna aan `metadesigns.1`. Metricool geeft sindsdien alleen nog data van `metadesigns.1`.
+- De nulmeting `2026-W45` in `weekly` en de "Eigen data"-trends van 11–12 november gaan over het oude account. Gebruik ze niet als vergelijkingsbasis; bouw een nieuwe basis op uit `metadesigns.1`.
+- De concepten voor 12 en 13 november zijn gemaakt vóór de wissel maar staan in hetzelfde merk; bij goedkeuring gaan ze naar `metadesigns.1`. De agent laat ze ongemoeid.
 
 ## Huisstijl en doelgroep
 
@@ -53,19 +60,19 @@ Maximaal één post per dag met een harde verkoop-CTA; de andere twee eindigen m
 
 Doeldatum = **morgen** (Amsterdam). Heeft morgen al drie concepten met een `uuid` uit `posts`, neem dan de eerstvolgende dag zonder agent-concepten, maar nooit verder dan vandaag + 3. Is alles tot en met vandaag + 3 gevuld, maak dan geen nieuwe posts en werk alleen het dashboard bij.
 
-1. **Voorbereiden.** Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
+1. **Voorbereiden.** Voer de accountcontrole (regel 0) uit. Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
 2. **Maandag eerst: weekanalyse** (zie hieronder).
 3. **Onderzoek (min. 5 zoekopdrachten, `WebSearch`).** Actuele Instagram-/Reels-trends (deze week), algoritme-updates, contentformats voor dienstverleners/webdesign, Nederlands ondernemersnieuws (mkb, websites, Google/AI-zoeken, KVK, feestdagen/seizoen). Metricool: `getAnalyticsDataByMetrics` voor eigen posts (IGPO*) en Reels (IGRE*) van de laatste 30 dagen, en concurrenten (IGCO*, IGCP*, IGCR*) als die in Metricool zijn ingesteld. Noteer 4–8 trends met bewijs + bron.
 4. **Publicatietijden.** `getBestTimeToPostByNetwork` (instagram, komende 7 dagen). Kies voor de doeldatum drie tijdslots met de hoogste waarden, minstens 2 uur uit elkaar, en niet binnen 60 min van een bestaande post (`getScheduledPosts`). Combineer met eigen resultaten per uur uit `weekly` zodra er genoeg data is (≥ 20 posts).
 5. **Ideeën → drie posts.** Schrijf per post: format, pijler, hook, caption, hashtags, CTA, visuele specificatie, kansrijkheid (1–10) + waarom (verwijs naar trends en eigen data), bronnen.
 6. **Beelden maken.** Schrijf per post een spec (zie `tools/voorbeeld-*.json`): `kind` = `image` (1 slide), `carousel` (5–8 slides, laatste = `cta`) of `reel` (4–6 scènes, 10–20 s totaal, eerste scène is de hook). Draai `node tools/render.js spec.json out/`. Bekijk het resultaat (montage/screenshot) en los afgekapte of te volle tekst op.
 7. **Uploaden.** Kopieer naar `media/JJJJ/MM/DD/`, commit ("Media JJJJ-MM-DD"), `git push origin main`. Gebruik URL's vastgepind op de commit: `https://raw.githubusercontent.com/metadesigns-web/metadesigns-content/<commit-sha>/media/...`. Video's > 50 MB: niet pushen; meld het in het dashboard.
-8. **Concepten in Metricool.** `createScheduledPost` per post: `draft: true`, `autoPublish: false`, `providers: [{"network":"instagram"}]`, `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat alle drie `draft: true` hebben. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
+8. **Concepten in Metricool.** `createScheduledPost` per post: `draft: true`, `autoPublish: false`, `providers: [{"network":"instagram"}]` (= `metadesigns.1`), `instagramData.type` = `POST` (afbeelding/carrousel) of `REEL` (+ `videoThumbnailUrl` = cover), `mediaAltText` per afbeelding, `publicationDate` in Europe/Amsterdam. Controleer met `getScheduledPosts` dat alle drie `draft: true` hebben. Faalt een post: één keer corrigeren, anders als `status: "mislukt"` met de fout in het dashboard.
 9. **Dashboard bijwerken** (zie "Dashboard"). Daarna een korte samenvatting als eindbericht: doeldatum, drie posts met tijd, links naar de Metricool-planner, en eventuele problemen.
 
 ## Weekanalyse (elke maandag, vóór de dagelijkse stappen)
 
-1. Haal via Metricool de posts (IGPO01,03,06,07,14,28,12,15,27,08) en Reels (IGRE01,03,06,23,11,09,12,21,07,24) van de afgelopen 7 én 28 dagen op, plus accountgroei (IGEV01, IGEV43).
+1. Gebruik alleen data van `metadesigns.1` (vanaf 11 november 2026). Haal via Metricool de posts (IGPO01,03,06,07,14,28,12,15,27,08) en Reels (IGRE01,03,06,23,11,09,12,21,07,24) van de afgelopen 7 én 28 dagen op, plus accountgroei (IGEV01, IGEV43).
 2. Koppel gepubliceerde posts aan `posts` (eerste 60 tekens van de caption). Bepaal per format, pijler, hooktype en tijdslot: bereik, weergaven, interacties, bewaard, gedeeld, en ratio's per bereik.
 3. Schrijf een `weekly`-record: wat werkte, wat niet, en 2–4 concrete `action`-regels voor de komende week (bijv. "Reels op 12:00 i.p.v. 19:00", "meer lokale hooks"). Wees eerlijk over kleine aantallen: onder ~200 bereik per week zijn verschillen indicatief, niet significant.
 4. Pas de kansrijkheidsscores van komende posts aan op wat aantoonbaar werkte. Werk de mixtabel niet in dit bestand bij; zet de aanbeveling in `weekly.action`.
