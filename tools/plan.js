@@ -9,9 +9,9 @@
 // Schrijft niets; geeft een JSON-plan terug.
 //
 // Regels:
-//  - Een dag telt alle posts met draft=false (automatisch of handmatig ingepland, van wie dan ook)
-//    plus concepten die de agent zelf heeft gemaakt (ledger.drafts). Oude/handmatige concepten tellen
-//    niet mee als bezetting, maar wel voor de tijdsafstand.
+//  - Een dag telt ALLE posts die in Metricool op die dag staan, ongeacht de status: automatische
+//    publicaties, handmatig ingeplande posts én concepten, van de agent of van de eigenaar.
+//    Maximaal 2 per dag in totaal.
 //  - Dagen met 2 of meer posts worden overgeslagen. Overige dagen worden van vroeg naar laat aangevuld,
 //    maximaal --max nieuwe posts per run, binnen --days dagen (vandaag meegerekend).
 //  - Format: per dag streven naar 1 Reel + 1 POST (carrousel of afbeelding).
@@ -42,11 +42,10 @@ const addDays = (d, n) => { const [y, m, dd] = d.split('-').map(Number); return 
 const isoDow = (d) => { const [y, m, dd] = d.split('-').map(Number); return ((new Date(Date.UTC(y, m - 1, dd)).getUTCDay() + 6) % 7) + 1; };
 const DAGEN = ['', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag', 'zondag'];
 
-const agentDrafts = new Set((ledger.drafts || []).map((d) => String(d.uuid)));
 const posts = planner.filter((p) => p && p.publicationDate && p.publicationDate.dateTime).map((p) => ({
   uuid: String(p.uuid), dt: p.publicationDate.dateTime.slice(0, 16), day: p.publicationDate.dateTime.slice(0, 10),
   type: (p.instagramData && p.instagramData.type) || 'POST', draft: p.draft === true, auto: p.autoPublish === true,
-  counts: p.draft !== true || agentDrafts.has(String(p.uuid)),
+  counts: true, // elke post telt mee, ook concepten
   hook: String(p.text || '').split('\n')[0].slice(0, 60),
 }));
 
@@ -61,12 +60,12 @@ for (let i = 0; i < DAYS; i++) {
   const day = addDays(today, i);
   const onDay = posts.filter((p) => p.day === day);
   const counting = onDay.filter((p) => p.counts);
-  const row = { date: day, weekday: DAGEN[isoDow(day)], existing: counting.length, existingTypes: counting.map((p) => p.type), ignoredDrafts: onDay.filter((p) => !p.counts).length, add: [] };
+  const row = { date: day, weekday: DAGEN[isoDow(day)], existing: counting.length, existingTypes: counting.map((p) => (p.draft ? 'concept ' : p.auto ? 'auto ' : 'handmatig ') + p.type), add: [] };
   overview.push(row);
   if (counting.length >= 2) { row.status = 'vol (overgeslagen)'; continue; }
   if (created >= MAX) { row.status = `nog ${2 - counting.length} vrij (volgende run)`; continue; }
   const needTypes = [];
-  const hasReel = counting.some((p) => p.type === 'REEL') ;
+  const hasReel = counting.some((p) => p.type === 'REEL');
   const hasPost = counting.some((p) => p.type !== 'REEL');
   if (!hasReel) needTypes.push('REEL');
   if (!hasPost) needTypes.push('POST');

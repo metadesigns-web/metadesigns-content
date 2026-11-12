@@ -63,18 +63,18 @@ Maximaal één post per dag met een harde verkoop-CTA; de andere eindigt met een
 
 ## Dagelijkse run
 
-**Planning: maximaal 2 Instagram-posts per dag in totaal, inclusief wat al in Metricool staat.**
+**Planning: maximaal 2 Instagram-posts per dag in totaal, inclusief alles wat al in Metricool staat (ook concepten).**
 Elke run (06:37) vult de planner aan; er is geen vaste doeldatum meer.
 
 1. Haal de **volledige** planner op: `getScheduledPosts` (brandId 8006283, Europe/Amsterdam) van vandaag t/m vandaag + 30 dagen, en `getBestTimeToPostByNetwork` (instagram, komende 7 dagen). Sla beide antwoorden letterlijk op als JSON-bestanden in je scratchpad.
 2. Draai `node tools/plan.js <planner.json> <besttimes.json>` (zonder `--now`: dan geldt de huidige Amsterdamse tijd). Het plan bepaalt:
-   - **Wat telt per dag:** alle posts met `draft: false` (automatisch of handmatig ingepland, ook van de eigenaar) plus concepten die de agent zelf maakte (`ledger.drafts`). Oudere concepten tellen niet als bezetting, wel voor de tijdsafstand.
+   - **Wat telt per dag:** **alle** posts die in Metricool op die dag staan, ongeacht de status: automatische publicaties, handmatig ingeplande posts én concepten, van de agent of van de eigenaar. Nooit meer dan 2 per dag in totaal.
    - **Dagen met 2 posts worden overgeslagen.** Andere dagen worden van vroeg naar laat aangevuld (vandaag meegerekend, max. 14 dagen vooruit), **maximaal 2 nieuwe posts per run**.
    - **Format per dag:** 1 Reel + 1 carrousel óf losse afbeelding; staat er al een Reel, dan een carrousel/afbeelding, en omgekeerd.
    - **Tijd:** het beste Metricool-uur van die weekdag (08:00–21:00), minstens 2 uur na de run en minstens 2 uur van elke andere post die dag.
    - **Modus:** automatisch zolang de maandteller < 20, anders concept (maandlimiet).
 3. Volg het plan exact (datum, tijd, format, modus). Wijk alleen af als de beveiliging een tijd weigert; kies dan het volgende geldige uur volgens dezelfde regels en meld het.
-4. **Nooit dubbel:** maak alleen de posts uit het plan van deze run. Haal vlak vóór elke aanmaak opnieuw `getScheduledPosts` op voor die dag; staan er dan al 2 meetellende posts, sla die post over en meld het. Inhoudelijk geen herhaling (zie "Variatie").
+4. **Nooit dubbel:** maak alleen de posts uit het plan van deze run. Haal vlak vóór elke aanmaak opnieuw `getScheduledPosts` op voor die dag; staan er dan al 2 posts (welke status ook), sla die post over en meld het. Inhoudelijk geen herhaling (zie "Variatie").
 5. Bevat het plan niets (alle dagen vol), maak dan niets aan en meld dat.
 
 1. **Voorbereiden.** Voer de accountcontrole (regel 0) uit. Lees dit bestand. Lees in het dashboard de datasets `posts`, `trends`, `weekly`, `times` (via `ArtifactData get` → `source.url` → `Artifact read` met `path` = de 32 tekens na `/_blob/`). Lees het laatste `weekly`-record: de `action`-regels zijn verplichte aanpassingen.
@@ -108,7 +108,7 @@ Elke run (06:37) vult de planner aan; er is geen vaste doeldatum meer.
 
 Maak content daarom altijd publicatieklaar: alleen geverifieerde cijfers met bron, geen acties die vóór of op de publicatiedag aflopen, geen gevoelige onderwerpen. Twee automatische publicaties liggen minstens 2 uur uit elkaar (hook-verplicht).
 
-**Teller (ledger).** `.claude/state/autopublish-ledger.json` in deze repo houdt in `drafts` de concepten van de agent bij (dagbezetting voor de planner) en telt in `months` álle automatische publicaties per kalendermaand: die van de agent (via de record-hook bij aanmaak) én die in Metricool op een andere manier op automatisch staan (bijv. door de eigenaar omgezet; de record-hook voegt ze toe als `source: "extern"` zodra `getScheduledPosts` ze toont). Een toekomstige automatische publicatie die niet meer in de planner staat (verwijderd of teruggezet), markeert de record-hook als `cancelled`; die telt niet meer mee. Gepubliceerde posts blijven meetellen. Roep daarom aan het begin van elke run `getScheduledPosts` aan voor de hele lopende en volgende maand. Commit en push de ledger **direct** na elke wijziging (`git add .claude/state/ && git commit && git push`). Pas de ledger nooit met de hand aan, behalve om hem na een containerwissel te herstellen uit git.
+**Teller (ledger).** `.claude/state/autopublish-ledger.json` in deze repo houdt in `drafts` de concepten van de agent bij (administratie) en telt in `months` álle automatische publicaties per kalendermaand: die van de agent (via de record-hook bij aanmaak) én die in Metricool op een andere manier op automatisch staan (bijv. door de eigenaar omgezet; de record-hook voegt ze toe als `source: "extern"` zodra `getScheduledPosts` ze toont). Een toekomstige automatische publicatie die niet meer in de planner staat (verwijderd of teruggezet), markeert de record-hook als `cancelled`; die telt niet meer mee. Gepubliceerde posts blijven meetellen. Roep daarom aan het begin van elke run `getScheduledPosts` aan voor de hele lopende en volgende maand. Commit en push de ledger **direct** na elke wijziging (`git add .claude/state/ && git commit && git push`). Pas de ledger nooit met de hand aan, behalve om hem na een containerwissel te herstellen uit git.
 
 **Wanneer automatisch publiceren niet kan** (de enige gevallen):
 1. *Maandlimiet bereikt:* de ledger telt 20 actieve automatische publicaties in de maand van de publicatiedatum. De hook weigert dan de 21e.
