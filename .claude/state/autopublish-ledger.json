@@ -208,5 +208,21 @@
         "hook": "Ben je rond kerst en oud & nieuw een paar dagen dicht? Zorg dat je klanten het o"
       }
     ]
-  }
+  },
+  "drafts": [
+    {
+      "date": "2026-11-23",
+      "time": "10:00",
+      "type": "REEL",
+      "uuid": "-5775221110157719399",
+      "created": "2026-11-20T05:39:03.413Z"
+    },
+    {
+      "date": "2026-11-23",
+      "time": "12:00",
+      "type": "POST",
+      "uuid": "-3609278888873934657",
+      "created": "2026-11-20T05:39:11.547Z"
+    }
+  ]
 }
